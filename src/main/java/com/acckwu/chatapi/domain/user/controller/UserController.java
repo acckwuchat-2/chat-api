@@ -22,7 +22,7 @@ public class UserController {
     public UserResponseDto getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userService.getUserById(userDetails.getUserId());
 
-        return new UserResponseDto(user.getUserId(), user.getUsername(), user.getEmail());
+        return new UserResponseDto(user.getUserId(), user.getUsername());
     }
 
     // 참여 중인 채팅방 목록 조회 API
