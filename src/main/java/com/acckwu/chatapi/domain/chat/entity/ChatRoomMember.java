@@ -15,12 +15,26 @@ public class ChatRoomMember {
     private String lastReadMessageId;
 
     @DynamoDbPartitionKey
+    @DynamoDbSecondarySortKey(indexNames = "user-index")
+    @DynamoDbAttribute("chat_room_id")
     public String getChatRoomId() {
         return chatRoomId;
     }
 
     @DynamoDbSortKey
+    @DynamoDbSecondaryPartitionKey(indexNames = "user-index")
+    @DynamoDbAttribute("user_id")
     public String getUserId() {
         return userId;
+    }
+
+    @DynamoDbAttribute("joined_at")
+    public String getJoinedAt() {
+        return joinedAt;
+    }
+
+    @DynamoDbAttribute("last_read_message_id")
+    public String getLastReadMessageId() {
+        return lastReadMessageId;
     }
 }
