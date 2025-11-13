@@ -33,6 +33,17 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // AWS SDK v2
+    implementation 'software.amazon.awssdk:dynamodb:2.25.0'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced:2.25.0'
+    implementation 'software.amazon.awssdk:auth:2.25.0'
+    implementation 'software.amazon.awssdk:regions:2.25.0'
+
+    // Java JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 }
 
 tasks.named('test') {
