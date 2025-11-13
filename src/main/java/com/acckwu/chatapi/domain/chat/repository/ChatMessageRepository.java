@@ -29,4 +29,17 @@ public class ChatMessageRepository {
                 Key.builder().partitionValue(chatRoomId).build())) // 특정 Partition Key(chatRoomId)에 해당하는 모든 아이템 조회
                 .items().stream().toList();
     }
+
+    // 해당 채팅방의 마지막 메시지를 가져옴
+    public ChatMessage findLastMessage(String chatRoomId) {
+        return table().query(r -> r
+                        .queryConditional(QueryConditional.keyEqualTo(
+                                Key.builder().partitionValue(chatRoomId).build()))
+                        .scanIndexForward(false) // 내림차순
+                        .limit(1))
+                .items()
+                .stream()
+                .findFirst()
+                .orElse(null);
+    }
 }
