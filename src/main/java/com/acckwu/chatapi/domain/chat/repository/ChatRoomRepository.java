@@ -1,10 +1,13 @@
 package com.acckwu.chatapi.domain.chat.repository;
 
+import com.acckwu.chatapi.domain.chat.dto.ChatRoomDto;
 import com.acckwu.chatapi.domain.chat.entity.ChatRoom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -27,5 +30,16 @@ public class ChatRoomRepository {
         return Optional.ofNullable(
                 table().getItem(Key.builder().partitionValue(id).build())
         );
+    }
+
+    // 모든 채팅방 조회
+    public List<ChatRoomDto> findAll() {
+        List<ChatRoomDto> list = new ArrayList<>();
+
+        for (ChatRoom room : table().scan().items()) {
+            list.add(new ChatRoomDto(room.getChatRoomId(), room.getName(), room.getLastMessageId()));
+        }
+
+        return list;
     }
 }

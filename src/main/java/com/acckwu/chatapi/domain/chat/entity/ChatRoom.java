@@ -15,6 +15,7 @@ public class ChatRoom {
     private String createdAt;
 
     @DynamoDbPartitionKey
+    @DynamoDbAttribute("chat_room_id")
     public String getChatRoomId() {
         return chatRoomId;
     }
