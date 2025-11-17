@@ -1,6 +1,7 @@
 package com.acckwu.chatapi.domain.chat.controller;
 
 import com.acckwu.chatapi.domain.chat.dto.CreateChatMessageDto;
+import com.acckwu.chatapi.domain.chat.dto.JoinChatRoomDto;
 import com.acckwu.chatapi.domain.chat.dto.LeaveChatRoomDto;
 import com.acckwu.chatapi.domain.chat.dto.MessageDto;
 import com.acckwu.chatapi.domain.chat.service.ChatService;
@@ -43,6 +44,16 @@ public class ChatStompController {
 
         chatService.leaveRoom(roomIdStr, userId);
     }
+
+    @MessageMapping("/chat/join")
+    public void joinChatRoom(JoinChatRoomDto request,
+                             @Header(name = "Authorization", required = false) String authorization) {
+        String userId = extractUserIdFromAuthorization(authorization);
+        String roomIdStr = String.valueOf(request.getRoomId());
+        chatService.joinRoom(roomIdStr, userId);
+    }
+
+
 
     private String extractUserIdFromAuthorization(String authorization) {
         if (authorization == null || authorization.isBlank()) {
