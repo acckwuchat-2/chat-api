@@ -131,4 +131,9 @@ public class ChatService {
                 .timestamp(now)
                 .build();
     }
+
+    public void leaveRoom(String roomId, String userId) {
+        // ChatRoomMemberRepository에 deleteByChatRoomIdAndUserId 가 있다고 가정
+        memberRepository.deleteByChatRoomIdAndUserId(roomId, userId);
+    }
 }
