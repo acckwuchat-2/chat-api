@@ -132,8 +132,28 @@ public class ChatService {
                 .build();
     }
 
+    public void joinRoom(String roomId, String userId) {
+        String now = Instant.now().toString();
+
+        // 이미 가입한 경우 중복 저장 방지
+        // (DynamoDB GSI user-index 사용)
+        boolean alreadyJoined = memberRepository.findByUserId(userId).stream()
+                .anyMatch(member -> roomId.equals(member.getChatRoomId()));
+
+        if (alreadyJoined) {
+            return;
+        }
+
+        ChatRoomMember member = ChatRoomMember.builder()
+                .chatRoomId(roomId)
+                .userId(userId)
+                .joinedAt(now)
+                .build();
+
+        memberRepository.save(member);
+    }
+
     public void leaveRoom(String roomId, String userId) {
-        // ChatRoomMemberRepository에 deleteByChatRoomIdAndUserId 가 있다고 가정
         memberRepository.deleteByChatRoomIdAndUserId(roomId, userId);
     }
 }
