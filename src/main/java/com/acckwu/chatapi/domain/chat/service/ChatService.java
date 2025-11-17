@@ -96,4 +96,39 @@ public class ChatService {
                 .sender(sender != null ? new UserDto(sender.getUserId(), sender.getUsername()) : null)
                 .build();
     }
+
+    public MessageDto createAndSaveMessage(String chatRoomId, String senderId, String content) {
+        String now = Instant.now().toString();
+        String messageId = UUID.randomUUID().toString();
+
+        // seq 계산: 마지막 메시지 기준 +1
+        ChatMessage last = chatMessageRepository.findLastMessage(chatRoomId);
+        long nextSeq = (last != null ? last.getSeq() + 1 : 1L);
+
+        ChatMessage chatMessage = ChatMessage.builder()
+                .messageId(messageId)
+                .chatRoomId(chatRoomId)
+                .senderId(senderId)
+                .content(content)
+                .createdAt(now)
+                .seq(nextSeq)
+                .build();
+
+        chatMessageRepository.save(chatMessage);
+
+        // 채팅방의 lastMessageId 업데이트
+        ChatRoom room = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        room.setLastMessageId(messageId);
+        chatRoomRepository.save(room);
+
+        // WebSocket 브로드캐스트용 DTO
+        return MessageDto.builder()
+                .messageId(messageId)
+                .roomId(chatRoomId)
+                .sender(senderId)
+                .timestamp(now)
+                .build();
+    }
 }
