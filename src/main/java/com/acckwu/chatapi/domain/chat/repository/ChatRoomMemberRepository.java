@@ -42,4 +42,17 @@ public class ChatRoomMemberRepository {
                 .flatMap(page -> page.items().stream())
                 .toList();
     }
+
+    public void deleteByChatRoomIdAndUserId(String roomId, String userId) {
+        DynamoDbTable<ChatRoomMember> table = table();
+
+        // 삭제할 키 구성
+        Key key = Key.builder()
+                .partitionValue(roomId)
+                .sortValue(userId)
+                .build();
+
+        // 아이템 삭제
+        table.deleteItem(key);
+    }
 }

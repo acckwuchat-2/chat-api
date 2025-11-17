@@ -1,6 +1,7 @@
 package com.acckwu.chatapi.domain.chat.controller;
 
 import com.acckwu.chatapi.domain.chat.dto.CreateChatMessageDto;
+import com.acckwu.chatapi.domain.chat.dto.LeaveChatRoomDto;
 import com.acckwu.chatapi.domain.chat.dto.MessageDto;
 import com.acckwu.chatapi.domain.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,18 @@ public class ChatStompController {
 
         // springwolf 명세: sub/chat_messages 로 브로드캐스트
         messagingTemplate.convertAndSend("/sub/chat_messages", messageDto);
+    }
+
+    @MessageMapping("/chat/leave")
+    public void leaveChatRoom(LeaveChatRoomDto request,
+                              @Header(name = "Authorization", required = false) String authorization) {
+
+        String userId = extractUserIdFromAuthorization(authorization);
+
+        // Long → String (내부 도메인 chatRoomId는 String이기 때문)
+        String roomIdStr = String.valueOf(request.getRoomId());
+
+        chatService.leaveRoom(roomIdStr, userId);
     }
 
     private String extractUserIdFromAuthorization(String authorization) {
