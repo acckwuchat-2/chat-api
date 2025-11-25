@@ -20,7 +20,10 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 // /api/auth/**: 인증 없이 접근 가능, 나머지 경로: JWT 인증 필요
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/",
+                                "/actuator/**",
+                                "/ws/**",
+                                "/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // JWT 필터 등록
