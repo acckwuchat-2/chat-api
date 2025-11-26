@@ -1,14 +1,20 @@
 package com.acckwu.chatapi.domain.chat.controller;
 
+import com.acckwu.chatapi.domain.auth.CustomUserDetails;
+import com.acckwu.chatapi.domain.auth.JwtProvider;
 import com.acckwu.chatapi.domain.chat.dto.CreateChatMessageDto;
 import com.acckwu.chatapi.domain.chat.dto.JoinChatRoomDto;
 import com.acckwu.chatapi.domain.chat.dto.LeaveChatRoomDto;
 import com.acckwu.chatapi.domain.chat.dto.MessageDto;
 import com.acckwu.chatapi.domain.chat.service.ChatService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -16,7 +22,7 @@ import org.springframework.stereotype.Controller;
 public class ChatStompController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatService chatService;
-
+    private final JwtProvider jwtProvider;
     @MessageMapping("/chat/send")
     public void sendChatMessage(CreateChatMessageDto request,
                                 @Header(name = "Authorization", required = false) String authorization) {
@@ -56,10 +62,29 @@ public class ChatStompController {
 
 
     private String extractUserIdFromAuthorization(String authorization) {
-        if (authorization == null || authorization.isBlank()) {
-            return "anonymous";
+
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return null;
         }
-        // TODO: auth 도메인(JWT) 연동해서 실제 userId 추출
-        return "user-id-from-token";
+
+        try {
+            String token = authorization.substring(7).trim();
+
+            // 토큰 검증
+            if (!jwtProvider.validateToken(token)) {
+                return null;
+            }
+
+            // userId(subject) 추출
+            Authentication auth = jwtProvider.getAuthentication(token);
+            CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+
+            return userDetails.getUserId();
+        } catch (Exception e) {
+            return null;
+        }
     }
+
+
+
 }
