@@ -23,6 +23,8 @@ public class SecurityConfig {
                         .requestMatchers("/",
                                 "/actuator/**",
                                 "/ws/**",
+                                "/ws-chat",
+                                "/ws-chat/**",
                                 "/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
