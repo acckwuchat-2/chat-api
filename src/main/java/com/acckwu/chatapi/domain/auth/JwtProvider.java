@@ -2,26 +2,34 @@ package com.acckwu.chatapi.domain.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Component
 public class JwtProvider {
-    // 임시 키(수정 필요)
-    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(
-            "this_is_a_very_long_and_secure_secret_key".getBytes()
-    );
+    private final SecretKey SECRET_KEY;
+    private final Long EXPIRATION;
+
+    public JwtProvider(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.expiration-ms}") Long expiration
+    ) {
+        this.SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.EXPIRATION = expiration;
+    }
 
     // JWT 생성 메서드
     public String generateToken(String userId) {
         return Jwts.builder()
                 .setSubject(userId)
                 .setIssuedAt(new Date()) // 발급 시간 기록
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 만료 시간(24시간)
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact(); // 실제 JWT 문자열 반환
     }
