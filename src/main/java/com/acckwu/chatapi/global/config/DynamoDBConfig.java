@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Configuration
 public class DynamoDBConfig {
 
-    @Value("${aws.use-role:false}")
+    @Value("${aws.use-role:true}")
     private boolean useRole;
 
     @Bean
