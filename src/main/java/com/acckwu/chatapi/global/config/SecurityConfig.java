@@ -17,7 +17,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // JWT 기반 REST API는 세션을 사용하지 않기 때문에 CSRF 방어가 불필요
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                //CORS 활성화
+                .cors(cors -> {})
+                .csrf(AbstractHttpConfigurer::disable)
                 // /api/auth/**: 인증 없이 접근 가능, 나머지 경로: JWT 인증 필요
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/",
@@ -32,5 +35,18 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+    // CORS 정책 정의
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        var config = new org.springframework.web.cors.CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+
+        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
