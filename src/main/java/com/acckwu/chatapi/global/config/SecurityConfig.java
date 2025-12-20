@@ -4,6 +4,7 @@ import com.acckwu.chatapi.domain.auth.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,10 +20,11 @@ public class SecurityConfig {
         // JWT 기반 REST API는 세션을 사용하지 않기 때문에 CSRF 방어가 불필요
         http
                 //CORS 활성화
-                .cors(cors -> {})
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 // /api/auth/**: 인증 없이 접근 가능, 나머지 경로: JWT 인증 필요
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/",
                                 "/actuator/**",
                                 "/ws/**",
@@ -42,7 +44,8 @@ public class SecurityConfig {
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         var config = new org.springframework.web.cors.CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedOriginPattern("http://localhost:3000");
+        config.addAllowedOriginPattern("https://3th-chat-ui.vercel.app");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
