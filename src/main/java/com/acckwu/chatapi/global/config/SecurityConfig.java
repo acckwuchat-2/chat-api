@@ -29,7 +29,7 @@ public class SecurityConfig {
                                 "/ws-chat",
                                 "/ws-chat/**",
                                 "/api/auth/**",
-                                "/api/health").permitAll()
+                                "/api/health/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // JWT 필터 등록
