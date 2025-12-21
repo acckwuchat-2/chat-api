@@ -18,8 +18,11 @@ public class ChatController {
 
     // 모든 채팅방 조회
     @GetMapping
-    public ResponseEntity<List<ChatRoomDto>> getChatRooms() {
-        return ResponseEntity.ok(chatService.getAllRooms());
+    public ResponseEntity<PageResponse<ChatRoomDto>> getChatRooms(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(chatService.getAllRooms(page, size));
     }
 
     // 새 채팅방 생성
