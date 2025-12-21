@@ -77,14 +77,30 @@ public class ChatService {
     }
 
     // 특정 채팅방의 메시지 목록 조회
-    public List<ChatMessageDto> getMessages(String chatRoomId) {
-        List<ChatMessage> messages = chatMessageRepository.findByRoomId(chatRoomId);
-        List<ChatMessageDto> result = new ArrayList<>();
+    public PageResponse<ChatMessageDto> getMessages(String chatRoomId, int page, int size) {
+        ChatRoom room = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("Chat room not found"));
 
-        for (ChatMessage msg : messages) {
+        String id = room.getChatRoomId();
+
+        List<ChatMessage> messages = chatMessageRepository.findByRoomId(id);
+
+        int totalElements = messages.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, totalElements);
+
+        List<ChatMessage> pageItems =
+                fromIndex >= totalElements ? List.of() : messages.subList(fromIndex, toIndex);
+
+
+        List<ChatMessageDto> content = new ArrayList<>();
+
+        for (ChatMessage msg : pageItems) {
             User sender = userRepository.findById(msg.getSenderId()).orElse(null);
 
-            result.add(ChatMessageDto.builder()
+            content.add(ChatMessageDto.builder()
                     .id(msg.getMessageId())
                     .content(msg.getContent())
                     .createdAt(msg.getCreatedAt())
@@ -93,7 +109,13 @@ public class ChatService {
                     .build());
         }
 
-        return result;
+        return new PageResponse<>(
+                content,
+                totalPages,
+                totalElements,
+                size,
+                page
+        );
     }
 
     // 마지막 메시지 조회

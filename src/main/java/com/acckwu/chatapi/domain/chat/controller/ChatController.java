@@ -40,8 +40,12 @@ public class ChatController {
 
     // 특정 채팅방의 메시지 목록 조회
     @GetMapping("/{chatRoomId}/messages")
-    public ResponseEntity<List<ChatMessageDto>> getMessages(@PathVariable String chatRoomId) {
-        return ResponseEntity.ok(chatService.getMessages(chatRoomId));
+    public ResponseEntity<PageResponse<ChatMessageDto>> getMessages(
+            @PathVariable String chatRoomId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(chatService.getMessages(chatRoomId, page, size));
     }
 
     // 마지막 메시지 조회
