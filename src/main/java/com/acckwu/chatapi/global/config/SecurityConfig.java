@@ -30,6 +30,7 @@ public class SecurityConfig {
                                 "/ws-chat/**",
                                 "/api/auth/**",
                                 "/api/health/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // JWT 필터 등록

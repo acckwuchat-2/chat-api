@@ -21,8 +21,26 @@ public class ChatService {
     private final UserRepository userRepository;
 
     // 모든 채팅방 조회
-    public List<ChatRoomDto> getAllRooms() {
-        return chatRoomRepository.findAll();
+    public PageResponse<ChatRoomDto> getAllRooms(int page, int size) {
+
+        List<ChatRoomDto> allRooms = chatRoomRepository.findAll();
+
+        int totalElements = allRooms.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, totalElements);
+
+        List<ChatRoomDto> content =
+                fromIndex >= totalElements ? List.of() : allRooms.subList(fromIndex, toIndex);
+
+        return new PageResponse<>(
+                content,
+                totalPages,
+                totalElements,
+                size,
+                page
+        );
     }
 
     // 새 채팅방 생성
