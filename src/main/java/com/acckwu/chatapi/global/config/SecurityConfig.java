@@ -29,7 +29,8 @@ public class SecurityConfig {
                                 "/ws-chat",
                                 "/ws-chat/**",
                                 "/api/auth/**",
-                                "/api/health/**").permitAll()
+                                "/api/health/**",
+                                "/api/chats/*/messages").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )

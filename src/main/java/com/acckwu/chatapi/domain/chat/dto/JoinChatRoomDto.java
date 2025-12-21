@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class JoinChatRoomDto {
-    private Long roomId;
+    private String roomId;
 }
