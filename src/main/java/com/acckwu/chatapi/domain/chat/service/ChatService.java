@@ -22,7 +22,6 @@ public class ChatService {
 
     // 모든 채팅방 조회
     public PageResponse<ChatRoomDto> getAllRooms(int page, int size) {
-
         List<ChatRoomDto> allRooms = chatRoomRepository.findAll();
 
         int totalElements = allRooms.size();
@@ -34,13 +33,14 @@ public class ChatService {
         List<ChatRoomDto> content =
                 fromIndex >= totalElements ? List.of() : allRooms.subList(fromIndex, toIndex);
 
-        return new PageResponse<>(
-                content,
+        PageInfo pageInfo = new PageInfo(
                 totalPages,
                 totalElements,
                 size,
                 page
         );
+
+        return new PageResponse<>(content, pageInfo);
     }
 
     // 새 채팅방 생성
@@ -65,7 +65,7 @@ public class ChatService {
 
         memberRepository.save(member);
 
-        return new ChatRoomDto(roomId, dto.getName(), null);
+        return new ChatRoomDto(roomId, dto.getName(), (String) null);
     }
 
     // 특정 채팅방 조회
@@ -73,7 +73,7 @@ public class ChatService {
         ChatRoom room = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("Chat room not found"));
 
-        return new ChatRoomDto(room.getChatRoomId(), room.getName(), room.getLastMessageId());
+        return new ChatRoomDto(room.getChatRoomId(), room.getName(), (String) null);
     }
 
     // 특정 채팅방의 메시지 목록 조회
@@ -81,9 +81,9 @@ public class ChatService {
         ChatRoom room = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("Chat room not found"));
 
-        String id = room.getChatRoomId();
+        List<ChatMessage> messages =
+                chatMessageRepository.findByRoomIdOrdered(room.getChatRoomId());
 
-        List<ChatMessage> messages = chatMessageRepository.findByRoomId(id);
 
         int totalElements = messages.size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
@@ -94,9 +94,7 @@ public class ChatService {
         List<ChatMessage> pageItems =
                 fromIndex >= totalElements ? List.of() : messages.subList(fromIndex, toIndex);
 
-
         List<ChatMessageDto> content = new ArrayList<>();
-
         for (ChatMessage msg : pageItems) {
             User sender = userRepository.findById(msg.getSenderId()).orElse(null);
 
@@ -109,13 +107,14 @@ public class ChatService {
                     .build());
         }
 
-        return new PageResponse<>(
-                content,
+        PageInfo pageInfo = new PageInfo(
                 totalPages,
                 totalElements,
                 size,
                 page
         );
+
+        return new PageResponse<>(content, pageInfo);
     }
 
     // 마지막 메시지 조회
@@ -137,38 +136,33 @@ public class ChatService {
                 .build();
     }
 
-    public MessageDto createAndSaveMessage(String chatRoomId, String senderId, String content) {
+    public ChatMessageDto createAndSaveMessage(String roomId, String userId, String content) {
         String now = Instant.now().toString();
-        String messageId = UUID.randomUUID().toString();
 
-        // seq 계산: 마지막 메시지 기준 +1
-        ChatMessage last = chatMessageRepository.findLastMessage(chatRoomId);
-        long nextSeq = (last != null ? last.getSeq() + 1 : 1L);
-
-        ChatMessage chatMessage = ChatMessage.builder()
-                .messageId(messageId)
-                .chatRoomId(chatRoomId)
-                .senderId(senderId)
+        // seq는 네 로직대로 (없으면 null or 증가값)
+        ChatMessage saved = ChatMessage.builder()
+                .chatRoomId(roomId)
+                .senderId(userId)
+                .messageId(UUID.randomUUID().toString())
                 .content(content)
                 .createdAt(now)
-                .seq(nextSeq)
+                .seq(null)
                 .build();
 
-        chatMessageRepository.save(chatMessage);
+        chatMessageRepository.save(saved);
 
-        // 채팅방의 lastMessageId 업데이트
-        ChatRoom room = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+        // sender 객체 만들기
+        User sender = userRepository.findById(userId).orElse(null);
+        UserDto senderDto = (sender != null)
+                ? new UserDto(sender.getUserId(), sender.getUsername())
+                : new UserDto("unknown", "알 수 없음");
 
-        room.setLastMessageId(messageId);
-        chatRoomRepository.save(room);
-
-        // WebSocket 브로드캐스트용 DTO
-        return MessageDto.builder()
-                .messageId(messageId)
-                .roomId(chatRoomId)
-                .sender(senderId)
-                .timestamp(now)
+        return ChatMessageDto.builder()
+                .id(saved.getMessageId())
+                .content(saved.getContent())
+                .createdAt(saved.getCreatedAt())
+                .seq(saved.getSeq())
+                .sender(senderDto)
                 .build();
     }
 
