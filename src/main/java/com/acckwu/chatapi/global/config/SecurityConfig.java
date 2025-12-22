@@ -48,9 +48,11 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // 프론트 주소
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
-        config.addAllowedOrigin("http://localhost:3001");
         config.setAllowCredentials(true);
+        config.setAllowedOriginPatterns(List.of("http://localhost:*")); // 3000/3001 모두
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+
 
         // SockJS/STOMP에서 Authorization 헤더 사용
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
