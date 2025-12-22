@@ -2,10 +2,7 @@ package com.acckwu.chatapi.domain.chat.controller;
 
 import com.acckwu.chatapi.domain.auth.CustomUserDetails;
 import com.acckwu.chatapi.domain.auth.JwtProvider;
-import com.acckwu.chatapi.domain.chat.dto.CreateChatMessageDto;
-import com.acckwu.chatapi.domain.chat.dto.JoinChatRoomDto;
-import com.acckwu.chatapi.domain.chat.dto.LeaveChatRoomDto;
-import com.acckwu.chatapi.domain.chat.dto.MessageDto;
+import com.acckwu.chatapi.domain.chat.dto.*;
 import com.acckwu.chatapi.domain.chat.service.ChatService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -28,15 +25,17 @@ public class ChatStompController {
                                 @Header(name = "Authorization", required = false) String authorization) {
 
         String userId = extractUserIdFromAuthorization(authorization);
-
-        // Long → String 변환 (도메인은 String chatRoomId)
         String roomIdStr = String.valueOf(request.getChatRoomId());
 
-        MessageDto messageDto =
+        // 저장 + 프론트 호환 DTO로 반환받기
+        ChatMessageDto messageDto =
                 chatService.createAndSaveMessage(roomIdStr, userId, request.getContent());
 
-        // springwolf 명세: sub/chat_messages 로 브로드캐스트
-        messagingTemplate.convertAndSend("/sub/chat_messages", messageDto);
+        // 프론트가 구독하는 채널로 방 단위 브로드캐스트
+        messagingTemplate.convertAndSend(
+                "/sub/chat/room/" + roomIdStr,
+                messageDto
+        );
     }
 
     @MessageMapping("/chat/leave")

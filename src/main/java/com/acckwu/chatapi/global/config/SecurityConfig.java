@@ -8,6 +8,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -29,9 +34,7 @@ public class SecurityConfig {
                                 "/ws-chat",
                                 "/ws-chat/**",
                                 "/api/auth/**",
-                                "/api/health/**",
-                                "/api/chats/*/messages").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                                "/api/health/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // JWT 필터 등록
@@ -41,15 +44,22 @@ public class SecurityConfig {
     }
     // CORS 정책 정의
     @Bean
-    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-        var config = new org.springframework.web.cors.CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
 
-        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        // 프론트 주소
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.addAllowedOrigin("http://localhost:3001");
+        config.setAllowCredentials(true);
+
+        // SockJS/STOMP에서 Authorization 헤더 사용
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setExposedHeaders(List.of("Authorization"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
 }
